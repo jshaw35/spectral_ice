@@ -551,4 +551,82 @@ def dual_mask(da1,da2):
     da2_out = da2.where(~mask) # 
     
     return da1_out,da2_out
+
+
+def plot_trends(ds,title,units='W/m^2',seasonal=False):
+    '''
+    Create monthly and seasonal trend plots with 
+    statistical significance testing.
+    
+    '''
+
+    # For making month labels
+    mon_dict = {'1':'January','2':'February','3':'March','4':'April','5':'May','6':'June',
+               '7':'July','8':'August','9':'September','10':'October','11':'November','12':'December',
+               }
+    
+    var_wgt = add_weights(ds)
+    # average over the Arctic Ocean spatially, but not temporally
+    try:
+        spat_avg = masked_average(var_wgt,weights=var_wgt['cell_weight'],mask=var_wgt.lat<70,dim=['lat','lon'])
+    except:
+        spat_avg = masked_average(var_wgt,weights=var_wgt['cell_weight'],mask=var_wgt.latitude<70,dim=['latitude','longitude'])
+        
+    fig,axes = plt.subplots(3,1,figsize=(8,10))
+
+#     lines=[]
+    
+    if seasonal:
+        mon_groups = []
+
+        for i,dat in spat_avg.groupby('time.season'):
+            test = dat.groupby('time.year').mean('time')
+            mon_groups.append((i,test))
+    else:
+        mon_groups = spat_avg.groupby('time.month')
+
+    for color,(ind,mon) in zip(sns.color_palette("colorblind")+['grey','black'],mon_groups):        
+        mon_norm = mon - mon.mean() # normalize to the average
+
+        if True in np.isnan(mon):
+            print('nan in monthly averages for %s' % ind) # mon_dict[str(ind)])
+#             print(mon.values)
+        else:
+            ## ASSESS SIGNIFICANCE OF REGRESSION
+            time_str = 'year' if seasonal else 'time.year'
+
+            _slope, _intercept, _r_value, _p_value, _std_err =stats.linregress(mon[time_str],mon)
+
+            N=len(mon) # data point count (could be len(mon['time.year']) <-- same)
+
+            dof=N-2
+            tcrit=stats.t.ppf(0.975,dof)  ## two-sided 95%
+            t=_r_value*np.sqrt(N-2)/np.sqrt((1-_r_value*_r_value))
+
+            statsig_percent=(1-_p_value)*100
+            
+            line = (mon[time_str].values*_slope + _intercept).squeeze()
+#             print('tcrit:',tcrit,' t: ',t)
+            time_label = ind if seasonal else mon_dict[str(ind)]
+            if np.abs(t)>tcrit:
+                label = '%s: %.2f %s /yr (*%.2f)' % (time_label,_slope, units, (1-_p_value))
+            else:
+                label = '%s: %.2f %s /yr (%.2f)' % (time_label,_slope, units, (1-_p_value))
+
+            axes[0].plot(mon_norm[time_str],mon_norm,label=label,color=color) # mon_norm
+            out = axes[1].plot(mon[time_str],mon,label=label,color=color)
+
+            axes[1].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color) # was plotting by 'time' instead of 'time.year' originally
+            axes[2].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color)
+            
+            axes[0].set_ylabel('%s (anomaly)' % units)
+            axes[1].set_ylabel(units)
+            axes[2].set_ylabel(units)
+            axes[2].set_xlabel('Year')
+
+#             lines.append(out)
+
+    axes[2].legend(loc=[1,1])
+
+    fig.suptitle(title,fontsize=24)
     
