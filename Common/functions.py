@@ -553,10 +553,11 @@ def dual_mask(da1,da2):
     return da1_out,da2_out
 
 
-def plot_trends(ds,title,units='W/m^2',seasonal=False):
+def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs):
     '''
     Create monthly and seasonal trend plots with 
     statistical significance testing.
+    Needs to discard years when a whole season was not observed (a little dumb for DJF).
     
     '''
 
@@ -572,19 +573,25 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False):
     except:
         spat_avg = masked_average(var_wgt,weights=var_wgt['cell_weight'],mask=var_wgt.latitude<70,dim=['latitude','longitude'])
         
-    fig,axes = plt.subplots(3,1,figsize=(8,10))
-
-#     lines=[]
+#     fig,axes = plt.subplots(3,1,figsize=(8,10),sharex=True)
+    fig,axes = plt.subplots(1,1,figsize=(10,8),sharex=True)
     
     if seasonal:
         mon_groups = []
 
         for i,dat in spat_avg.groupby('time.season'):
-            test = dat.groupby('time.year').mean('time')
-            mon_groups.append((i,test))
+            yr_grouped = dat.groupby('time.year') #.mean('time')
+            
+            # Select only years where all three months are included
+            yr_cleaned = yr_grouped.where(yr_grouped.count() == 3).dropna('time').groupby('time.year').mean('time')
+            
+            mon_groups.append((i,yr_cleaned))
     else:
         mon_groups = spat_avg.groupby('time.month')
 
+    lins = []
+    labels = []
+        
     for color,(ind,mon) in zip(sns.color_palette("colorblind")+['grey','black'],mon_groups):        
         mon_norm = mon - mon.mean() # normalize to the average
 
@@ -597,6 +604,7 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False):
 
             _slope, _intercept, _r_value, _p_value, _std_err =stats.linregress(mon[time_str],mon)
 
+#             print(time_str,mon[time_str].dtype)
             N=len(mon) # data point count (could be len(mon['time.year']) <-- same)
 
             dof=N-2
@@ -613,20 +621,28 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False):
             else:
                 label = '%s: %.2f %s /yr (%.2f)' % (time_label,_slope, units, (1-_p_value))
 
-            axes[0].plot(mon_norm[time_str],mon_norm,label=label,color=color) # mon_norm
-            out = axes[1].plot(mon[time_str],mon,label=label,color=color)
-
-            axes[1].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color) # was plotting by 'time' instead of 'time.year' originally
-            axes[2].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color)
             
-            axes[0].set_ylabel('%s (anomaly)' % units)
-            axes[1].set_ylabel(units)
-            axes[2].set_ylabel(units)
-            axes[2].set_xlabel('Year')
+            out = axes.plot(mon[time_str],mon,label=label,color=color,**kwargs)         
+            lin = axes.plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color,**kwargs) # was plotting by 'time' instead of 'time.year' originally
+            axes.set_ylabel(units)
+            axes.set_xticks(mon[time_str][::4]) # Take every 4th year to avoid fractions
+            
+            lins.append(*lin)
+            labels.append(label)
+#             axes[0].plot(mon_norm[time_str],mon_norm,label=label,color=color,**kwargs) # mon_norm
+#             out = axes[1].plot(mon[time_str],mon,label=label,color=color,**kwargs)         
+#             axes[1].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color,**kwargs) # was plotting by 'time' instead of 'time.year' originally
+            
+#             axes[2].plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color,**kwargs)
+            
+#             axes[0].set_ylabel('%s (anomaly)' % units)
+#             axes[1].set_ylabel(units)
+#             axes[2].set_ylabel(units)
+#             axes[2].set_xlabel('Year')
+#             axes[2].set_xticks(mon[time_str][::4]) # Take every 4th year to avoid fractions
 
-#             lines.append(out)
-
-    axes[2].legend(loc=[1,1])
+#     axes[2].legend(loc=[1,1])
+    print(lins)
+    axes.legend(loc='best',handles=lins)
 
     fig.suptitle(title,fontsize=24)
-    
