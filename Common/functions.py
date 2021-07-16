@@ -553,7 +553,8 @@ def dual_mask(da1,da2):
     return da1_out,da2_out
 
 
-def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs):
+# def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs,**legkwargs, ):
+def plot_trends(ds,title,units='W/m^2',seasonal=False,axes=None,a_kwargs={}, b_kwargs={}):
     '''
     Create monthly and seasonal trend plots with 
     statistical significance testing.
@@ -574,7 +575,8 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs):
         spat_avg = masked_average(var_wgt,weights=var_wgt['cell_weight'],mask=var_wgt.latitude<70,dim=['latitude','longitude'])
         
 #     fig,axes = plt.subplots(3,1,figsize=(8,10),sharex=True)
-    fig,axes = plt.subplots(1,1,figsize=(10,8),sharex=True)
+    if axes == None:
+        fig,axes = plt.subplots(1,1,figsize=(10,8),sharex=True)
     
     if seasonal:
         mon_groups = []
@@ -622,8 +624,8 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs):
                 label = '%s: %.2f %s /yr (%.2f)' % (time_label,_slope, units, (1-_p_value))
 
             
-            out = axes.plot(mon[time_str],mon,label=label,color=color,**kwargs)         
-            lin = axes.plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color,**kwargs) # was plotting by 'time' instead of 'time.year' originally
+            out = axes.plot(mon[time_str],mon,label=label,color=color,**a_kwargs)         
+            lin = axes.plot(mon[time_str],line,alpha=0.5,linestyle='dashed',label=label,color=color,**a_kwargs) # was plotting by 'time' instead of 'time.year' originally
             axes.set_ylabel(units)
             axes.set_xticks(mon[time_str][::4]) # Take every 4th year to avoid fractions
             
@@ -642,7 +644,7 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False,**kwargs):
 #             axes[2].set_xticks(mon[time_str][::4]) # Take every 4th year to avoid fractions
 
 #     axes[2].legend(loc=[1,1])
-    print(lins)
-    axes.legend(loc='best',handles=lins)
+    axes.legend(handles=lins,**b_kwargs)
 
-    fig.suptitle(title,fontsize=24)
+#     fig.suptitle(title,fontsize=24)
+    axes.set_title(title,fontsize=24)
