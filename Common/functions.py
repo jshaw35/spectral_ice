@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.path as mpath
 import cartopy.crs as ccrs
 import cartopy as cy
+import matplotlib.colors as colors
 
 np.seterr(divide='ignore', invalid='ignore') # Fails to remove error message.
 
@@ -648,3 +649,15 @@ def plot_trends(ds,title,units='W/m^2',seasonal=False,axes=None,a_kwargs={}, b_k
 
 #     fig.suptitle(title,fontsize=24)
     axes.set_title(title,fontsize=24)
+    
+    
+class MidpointNormalize(colors.Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        super().__init__(vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
