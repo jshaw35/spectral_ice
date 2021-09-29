@@ -661,3 +661,13 @@ class MidpointNormalize(colors.Normalize):
         # simple example...
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
+    
+    
+def fix_cesm_time(ds):
+    '''Fix CESM-style time coordinate issue.'''
+    try:
+        ds['time'] = ds['time_bnds'].isel(bnds=0)
+    except:
+        ds['time'] = ds['time_bnds'].isel(nbnd=0)
+        
+    return ds
