@@ -63,6 +63,8 @@ from cartopy.util import add_cyclic_point
 import cartopy.feature as cfeature
 import re # regular expressions
 
+import copy
+
 # Plotting a la Kay 2015:
 # these modules aren't in my local conda environment, but they also aren't essential
 try:
