@@ -201,35 +201,61 @@ def plot_slf_isotherms(ds, var=None, isovar=None):
 
 def add_weights(ds):
     '''
-    Add variable to ds for weighting of lat,lon variables
-    Update to only require existing "lat" and "lon" variables. 
-    Adding mask argument.
+    Add variable to ds for weighting of variables. Updated to use xr.broadcast/be more general.
+    Test to see if backwards compatible.
+    Adding mask argument. (??)
     '''
     
+#     try:
+#         lat = ds['lat']
+#     except:
+#         lat = ds['latitude']
+        
+#     try:
+#         lon = ds['lon']
+#     except:
+#         lon = ds['longitude']
+    
+#     _ones = xr.ones_like(lon)
+#     _gw = np.cos(lat*np.pi/180)
+    
+#     xr.broadcast
+    
+#     _weights = (_gw @ _ones) / _gw.sum() 
+#     _weights_norm = _weights / _weights.sum()
+# #     xr.testing.assert_allclose(_weights_norm.sum().values,1) # doesn't work for some reason
+
+#     # approach
+# #     ds['cell_weight'] = (_gw @ _ones) / _gw.sum()
+    
+#     # this might be a better way to add the weights as a coordinate
+#     ds = ds.assign_coords(cell_weight=_weights_norm)
+    
+#     return ds
+
+    # Testing new more general code.
     try:
         lat = ds['lat']
     except:
         lat = ds['latitude']
-        
-    try:
-        lon = ds['lon']
-    except:
-        lon = ds['longitude']
-    
-    _ones = xr.ones_like(lon)
-    _gw = np.cos(lat*np.pi/180)
-    
-    _weights = (_gw @ _ones) / _gw.sum() 
-    _weights_norm = _weights / _weights.sum()
-#     xr.testing.assert_allclose(_weights_norm.sum().values,1) # doesn't work for some reason
 
-    # approach
-#     ds['cell_weight'] = (_gw @ _ones) / _gw.sum()
+    _gw = np.cos(lat*np.pi/180)
+
+    all_dims = list(ds.dims)
+
+    if 'lon' in all_dims: all_dims.remove('lon') # This could be prettier
+    if 'longitude' in all_dims: all_dims.remove('longitude')
+
+    # Broadcast only to lon/longitude if it exists
+    _weights,_ = xr.broadcast(_gw,ds,exclude=all_dims)
+
+    # _weights = (_gw @ _ones) / _gw.sum() 
+    _weights_norm = _weights / _weights.sum()
+
+    new = ds.assign_coords(cell_weight=_weights_norm)
     
-    # this might be a better way to add the weights as a coordinate
-    ds = ds.assign_coords(cell_weight=_weights_norm)
-    
-    return ds
+    return new
+
 
 def process_for_slf(in_path, out_vars):
     '''
