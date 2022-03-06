@@ -690,10 +690,13 @@ class MidpointNormalize(colors.Normalize):
     
     
 def fix_cesm_time(ds):
-    '''Fix CESM-style time coordinate issue.'''
+    '''Fix CESM-style time coordinate issue. Make a new object to avoid confusion!'''
+    
+    new_ds = ds.copy()
+    
     try:
-        ds['time'] = ds['time_bnds'].isel(bnds=0)
+        new_ds['time'] = new_ds['time_bnds'].isel(bnds=0)
     except:
-        ds['time'] = ds['time_bnds'].isel(nbnd=0)
+        new_ds['time'] = new_ds['time_bnds'].isel(nbnd=0)
         
-    return ds
+    return new_ds
