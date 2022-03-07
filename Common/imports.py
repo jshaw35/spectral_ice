@@ -19,6 +19,7 @@ import sys
 
 import pandas as pd
 import xarray as xr
+import dask
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
