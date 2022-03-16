@@ -206,33 +206,6 @@ def add_weights(ds):
     Adding mask argument. (??)
     '''
     
-#     try:
-#         lat = ds['lat']
-#     except:
-#         lat = ds['latitude']
-        
-#     try:
-#         lon = ds['lon']
-#     except:
-#         lon = ds['longitude']
-    
-#     _ones = xr.ones_like(lon)
-#     _gw = np.cos(lat*np.pi/180)
-    
-#     xr.broadcast
-    
-#     _weights = (_gw @ _ones) / _gw.sum() 
-#     _weights_norm = _weights / _weights.sum()
-# #     xr.testing.assert_allclose(_weights_norm.sum().values,1) # doesn't work for some reason
-
-#     # approach
-# #     ds['cell_weight'] = (_gw @ _ones) / _gw.sum()
-    
-#     # this might be a better way to add the weights as a coordinate
-#     ds = ds.assign_coords(cell_weight=_weights_norm)
-    
-#     return ds
-
     # Testing new more general code.
     try:
         lat = ds['lat']
