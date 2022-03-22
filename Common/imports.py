@@ -36,6 +36,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import cartopy as crt
 import cartopy.crs as ccrs
 
+import hvplot.xarray
+
 import seaborn as sns
 import importlib as il
 import glob
