@@ -673,3 +673,17 @@ def fix_cesm_time(ds):
         new_ds['time'] = new_ds['time_bnds'].isel(nbnd=0)
         
     return new_ds
+
+def tick_function1(X):
+    '''
+    Simple processing for a list of strings. Helper for ticks.
+    '''
+    out = ["%.0f" % z for z in X]
+    return out
+
+def tick_function2(X):
+    '''
+    Convert wavenumber to microns (and reverse) for doubled tick labelling.
+    '''
+    V = 1e4/X
+    return ["%.1f" % z for z in V]
