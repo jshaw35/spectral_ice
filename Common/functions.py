@@ -687,3 +687,18 @@ def tick_function2(X):
     '''
     V = 1e4/X
     return ["%.1f" % z for z in V]
+
+
+def multidim_groupby_map(data,groupby_dims,ffunc,**ffunc_kwargs):
+    '''
+    Hilarious recursive solution for the xarray groupby multiple dimensions problem. 
+    xarray groupby objects cannot be grouped again, but you can map a function that does group them again.
+    The base case is that we are grouping by a single dimension, which xarray can handle.
+    Otherwise we groupby a new dimension and call our function on the remaining dimensions.
+    
+    Pass data as an xarray.DataArray, groupby_dims as a list, ffunc as the final function to apply,
+    and ffunc_kwargs as arguments for ffunc.
+    '''
+    if len(groupby_dims)==1:
+        return data.groupby(groupby_dims[0]).map(ffunc,**ffunc_kwargs) # using groupby_dims.pop() instead of groupby_dims[0] didn't work for some reason
+    return data.groupby(groupby_dims.pop()).map(multidim_groupby_map,groupby_dims=groupby_dims,ffunc=ffunc,**ffunc_kwargs)
