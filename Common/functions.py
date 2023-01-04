@@ -702,3 +702,17 @@ def multidim_groupby_map(data,groupby_dims,ffunc,**ffunc_kwargs):
     if len(groupby_dims)==1:
         return data.groupby(groupby_dims[0]).map(ffunc,**ffunc_kwargs) # using groupby_dims.pop() instead of groupby_dims[0] didn't work for some reason
     return data.groupby(groupby_dims.pop()).map(multidim_groupby_map,groupby_dims=groupby_dims,ffunc=ffunc,**ffunc_kwargs)
+
+
+def reindex_time_to_year(data):
+
+    step1 = data.rename(time='year')
+    step2 = step1.assign_coords(year=data['time.year'].values)
+        
+    return step2
+
+def reindex_time_to_monthyear(data):
+'''
+Cutesy function(s) unwrap the time dimension into its respective year and month indices.
+'''
+    return data.groupby('time.month').map(reindex_time_to_year)
