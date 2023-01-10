@@ -712,7 +712,7 @@ def reindex_time_to_year(data):
     return step2
 
 def reindex_time_to_monthyear(data):
-'''
-Cutesy function(s) unwrap the time dimension into its respective year and month indices.
-'''
+    '''
+    Cutesy function(s) unwrap the time dimension into its respective year and month indices.
+    '''
     return data.groupby('time.month').map(reindex_time_to_year)
