@@ -104,10 +104,10 @@ def interpretNS(stringin):
     first = lat_range[:3]
     second = lat_range[-3:]
     
-    if first[-1] is 'N':
+    if first[-1] == 'N':
         low = int(first[:2])
     else: low = -1 * int(first[:2])
-    if second[-1] is 'N':
+    if second[-1] == 'N':
         high = int(second[:2])
     else: high = -1 * int(second[:2])
     avg_lat = np.abs(np.mean([low,high]))
