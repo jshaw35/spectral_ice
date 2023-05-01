@@ -129,18 +129,5 @@ dmypy.json
 .pyre/
 
 dask-worker-space/
-dask-worker.*
-trend_uncertainty/dask-worker.o6571245
-trend_uncertainty/dask-worker.o6571246
-trend_uncertainty/dask-worker.o6571247
-trend_uncertainty/dask-worker.o6571248
-trend_uncertainty/dask-worker.o6571249
-trend_uncertainty/dask-worker.o6571250
-trend_uncertainty/dask-worker.o6571251
-trend_uncertainty/dask-worker.o6571252
-trend_uncertainty/dask-worker.o6571253
-trend_uncertainty/dask-worker.o6571254
-trend_uncertainty/dask-worker.o6571255
-trend_uncertainty/dask-worker.o6571256
-trend_uncertainty/dask-worker.o6571257
-trend_uncertainty/dask-worker.o6571258
+**/dask-worker.*
+**/*.nc
